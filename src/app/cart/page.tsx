@@ -79,54 +79,57 @@ export default function CartPage() {
             {cart.map((item) => (
               <div
                 key={item.product.id}
-                className="flex items-center gap-4 bg-white border border-blush rounded-2xl p-4 shadow-sm"
+                className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 bg-white border border-blush rounded-2xl p-4 shadow-sm"
               >
-                <div className="w-16 h-16 rounded-xl bg-lavender flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl">🍪</span>
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-14 h-14 rounded-xl bg-lavender flex items-center justify-center flex-shrink-0">
+                    <span className="text-2xl">🍪</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-semibold text-violet truncate">
+                      {item.product.name}
+                    </p>
+                    <p className="font-body text-sm text-gray-500">
+                      ${Number(item.product.price).toFixed(2)} each
+                    </p>
+                  </div>
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <p className="font-display font-semibold text-violet truncate">
-                    {item.product.name}
-                  </p>
-                  <p className="font-body text-sm text-gray-500">
-                    ${Number(item.product.price).toFixed(2)} each
-                  </p>
-                </div>
+                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                  {/* Quantity controls */}
+                  <div className="flex items-center border border-blush-dark rounded-lg overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item.product.id, -1)}
+                      className="w-8 h-8 flex items-center justify-center text-violet hover:bg-lavender transition-colors font-bold"
+                    >
+                      &minus;
+                    </button>
+                    <span className="w-8 text-center font-body font-medium text-gray-900 text-sm">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity(item.product.id, 1)}
+                      className="w-8 h-8 flex items-center justify-center text-violet hover:bg-lavender transition-colors font-bold"
+                    >
+                      +
+                    </button>
+                  </div>
 
-                {/* Quantity controls */}
-                <div className="flex items-center border border-blush-dark rounded-lg overflow-hidden">
+                  <p className="font-display font-bold text-gold w-16 text-right">
+                    ${(Number(item.product.price) * item.quantity).toFixed(2)}
+                  </p>
+
                   <button
                     type="button"
-                    onClick={() => updateQuantity(item.product.id, -1)}
-                    className="w-8 h-8 flex items-center justify-center text-violet hover:bg-lavender transition-colors font-bold"
+                    onClick={() => removeItem(item.product.id)}
+                    className="text-gray-400 hover:text-red-500 transition-colors"
+                    aria-label="Remove item"
                   >
-                    &minus;
-                  </button>
-                  <span className="w-8 text-center font-body font-medium text-gray-900 text-sm">
-                    {item.quantity}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => updateQuantity(item.product.id, 1)}
-                    className="w-8 h-8 flex items-center justify-center text-violet hover:bg-lavender transition-colors font-bold"
-                  >
-                    +
+                    ✕
                   </button>
                 </div>
-
-                <p className="font-display font-bold text-gold w-16 text-right">
-                  ${(Number(item.product.price) * item.quantity).toFixed(2)}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.product.id)}
-                  className="text-gray-400 hover:text-red-500 transition-colors ml-2"
-                  aria-label="Remove item"
-                >
-                  ✕
-                </button>
               </div>
             ))}
           </div>
