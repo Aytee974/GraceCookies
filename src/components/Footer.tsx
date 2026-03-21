@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export function Footer() {
   return (
     <footer className="bg-white mt-auto border-t-2 border-[#e9d5ff]">
@@ -39,6 +41,13 @@ export function Footer() {
             hello@gfgraceyscookies.com
           </a>
         </div>
+
+        <Link
+          href="/our-story"
+          className="font-body text-sm font-medium text-[#7c3aed] hover:text-[#6d28d9] transition-colors"
+        >
+          Our Story
+        </Link>
 
         <p className="font-body text-sm text-violet">
           &copy; {new Date().getFullYear()} GF Gracey&apos;s Cookies &middot; Made with love
