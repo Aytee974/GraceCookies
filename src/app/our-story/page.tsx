@@ -17,7 +17,7 @@ export default function OurStoryPage() {
         <h1 className="font-display text-4xl sm:text-5xl font-bold text-violet leading-tight">
           Our Story
         </h1>
-        <p className="font-body text-lg text-gray-500 italic mt-3">
+        <p className="font-body text-lg text-gray-600 italic mt-3">
           Why we bake the way we do.
         </p>
       </section>
