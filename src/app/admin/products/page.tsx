@@ -31,6 +31,7 @@ interface ProductFormState {
   price: string
   category: string
   available: boolean
+  weekly_quantity: string
   imageFile: File | null
   imageUrl: string | null
 }
@@ -42,6 +43,7 @@ const emptyForm: ProductFormState = {
   price: '',
   category: 'cookies',
   available: true,
+  weekly_quantity: '0',
   imageFile: null,
   imageUrl: null,
 }
@@ -97,6 +99,7 @@ export default function ProductsPage() {
       price: String(product.price),
       category: product.category,
       available: product.available,
+      weekly_quantity: String(product.weekly_quantity ?? 0),
       imageFile: null,
       imageUrl: product.image_url,
     })
@@ -133,6 +136,8 @@ export default function ProductsPage() {
         imageUrl = uploadResult.url ?? null
       }
 
+      const weekly_quantity = parseInt(form.weekly_quantity) || 0
+
       const data = {
         name: form.name.trim(),
         slug: form.slug.trim(),
@@ -140,6 +145,7 @@ export default function ProductsPage() {
         price,
         category: form.category,
         available: form.available,
+        weekly_quantity,
         image_url: imageUrl,
       }
 
@@ -234,6 +240,15 @@ export default function ProductsPage() {
                 required
               />
             </div>
+            <div>
+              <Input
+                label="Weekly quantity (0 = unlimited)"
+                type="number"
+                min="0"
+                value={form.weekly_quantity}
+                onChange={(e) => setForm((f) => ({ ...f, weekly_quantity: e.target.value }))}
+              />
+            </div>
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium text-gray-700">Category</label>
               <select
@@ -309,6 +324,7 @@ export default function ProductsPage() {
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Name</th>
                 <th className="text-left px-4 py-3 font-medium text-gray-500">Category</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-500">Price</th>
+                <th className="text-right px-4 py-3 font-medium text-gray-500">Weekly Qty</th>
                 <th className="text-center px-4 py-3 font-medium text-gray-500">Available</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
               </tr>
@@ -324,6 +340,9 @@ export default function ProductsPage() {
                     <Badge label={p.category} />
                   </td>
                   <td className="px-4 py-3 text-right text-gray-700">${Number(p.price).toFixed(2)}</td>
+                  <td className="px-4 py-3 text-right text-gray-500 text-sm">
+                    {p.weekly_quantity > 0 ? p.weekly_quantity : '∞'}
+                  </td>
                   <td className="px-4 py-3 text-center">
                     <button
                       onClick={() => handleToggle(p.id, p.available)}
