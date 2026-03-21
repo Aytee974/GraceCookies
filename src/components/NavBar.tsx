@@ -6,6 +6,7 @@ import { CartCount } from './CartCount'
 
 const navLinks = [
   { label: 'Shop', href: '/shop' },
+  { label: 'Our Story', href: '/our-story' },
 ]
 
 export function NavBar() {
