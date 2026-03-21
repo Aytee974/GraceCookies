@@ -11,6 +11,7 @@ export type ProductFormData = {
   price: number
   category: string
   available: boolean
+  weekly_quantity: number
   image_url?: string | null
 }
 
@@ -24,6 +25,7 @@ export async function createProduct(data: ProductFormData): Promise<{ error?: st
       price: data.price,
       category: data.category,
       available: data.available,
+      weekly_quantity: data.weekly_quantity,
       image_url: data.image_url ?? null,
     })
 

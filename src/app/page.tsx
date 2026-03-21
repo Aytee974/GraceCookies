@@ -1,10 +1,23 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { ProductCard } from '@/components/ProductCard'
 import type { Product } from '@/lib/types'
 
+function getNextMonday(): string {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const day = today.getDay()
+  const daysUntil = day === 0 ? 1 : 8 - day
+  const next = new Date(today)
+  next.setDate(today.getDate() + daysUntil)
+  return next.toISOString().split('T')[0]
+}
+
 export default async function HomePage() {
   let featuredProducts: Product[] = []
+  let remainingMap: Record<string, number> = {}
 
   try {
     const supabase = await createClient()
@@ -15,6 +28,27 @@ export default async function HomePage() {
       .order('created_at', { ascending: false })
       .limit(4)
     featuredProducts = data ?? []
+
+    const limitedProducts = featuredProducts.filter((p) => p.weekly_quantity > 0)
+    if (limitedProducts.length > 0) {
+      const admin = createAdminClient()
+      const nextMonday = getNextMonday()
+      const { data: items } = await admin
+        .from('order_items')
+        .select('product_id, quantity, orders!inner(pickup_week, status)')
+        .in('product_id', limitedProducts.map((p) => p.id))
+        .eq('orders.pickup_week', nextMonday)
+        .in('orders.status', ['paid', 'ready', 'fulfilled'])
+
+      const orderedMap: Record<string, number> = {}
+      for (const item of items ?? []) {
+        orderedMap[item.product_id] = (orderedMap[item.product_id] ?? 0) + item.quantity
+      }
+
+      for (const p of limitedProducts) {
+        remainingMap[p.id] = Math.max(0, p.weekly_quantity - (orderedMap[p.id] ?? 0))
+      }
+    }
   } catch {
     featuredProducts = []
   }
@@ -29,6 +63,16 @@ export default async function HomePage() {
         <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-bold text-violet max-w-3xl leading-tight mb-6">
           Handmade cookies &amp; treats, baked fresh every week.
         </h1>
+        <div className="w-full max-w-2xl rounded-2xl overflow-hidden shadow-lg mb-8">
+          <Image
+            src="/cookies-hero.jpg"
+            alt="Freshly baked cookies"
+            width={1200}
+            height={800}
+            className="w-full h-64 sm:h-80 object-cover"
+            priority
+          />
+        </div>
         <p className="font-body text-lg text-gray-600 max-w-xl mb-10">
           Gluten-free, made with love. Order by Sunday, pick up the following week.
         </p>
@@ -48,7 +92,7 @@ export default async function HomePage() {
         {featuredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} remaining={remainingMap[product.id]} />
             ))}
           </div>
         ) : (

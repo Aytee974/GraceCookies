@@ -6,9 +6,10 @@ import type { Product } from '@/lib/types'
 
 interface ProductCardProps {
   product: Product
+  remaining?: number
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, remaining }: ProductCardProps) {
   return (
     <Card className="flex flex-col overflow-hidden p-0 hover:shadow-lg transition-shadow duration-200">
       <Link href={`/shop/${product.slug}`} className="block">
@@ -42,6 +43,18 @@ export function ProductCard({ product }: ProductCardProps) {
         {product.description && (
           <p className="font-body text-sm text-gray-600 line-clamp-2 flex-1">
             {product.description}
+          </p>
+        )}
+
+        {remaining !== undefined && (
+          <p className={`text-xs font-medium ${
+            remaining === 0
+              ? 'text-red-500'
+              : remaining <= 5
+              ? 'text-amber-600'
+              : 'text-green-600'
+          }`}>
+            {remaining === 0 ? 'Sold out this week' : remaining <= 5 ? `Only ${remaining} left!` : `${remaining} left`}
           </p>
         )}
 

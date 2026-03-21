@@ -7,6 +7,7 @@ export type Product = {
   category: string
   image_url: string | null
   available: boolean
+  weekly_quantity: number
   created_at: string
 }
 

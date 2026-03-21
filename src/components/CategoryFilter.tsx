@@ -8,9 +8,10 @@ const CATEGORIES = ['All', 'Cookies', 'Other']
 
 interface CategoryFilterProps {
   products: Product[]
+  remainingMap?: Record<string, number>
 }
 
-export function CategoryFilter({ products }: CategoryFilterProps) {
+export function CategoryFilter({ products, remainingMap }: CategoryFilterProps) {
   const [active, setActive] = useState('All')
 
   const filtered =
@@ -43,7 +44,11 @@ export function CategoryFilter({ products }: CategoryFilterProps) {
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filtered.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              remaining={remainingMap ? remainingMap[product.id] : undefined}
+            />
           ))}
         </div>
       ) : (

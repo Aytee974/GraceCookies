@@ -2,8 +2,19 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Badge } from '@/components/ui/Badge'
 import { AddToCart } from '@/components/AddToCart'
+
+function getNextMonday(): string {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const day = today.getDay()
+  const daysUntil = day === 0 ? 1 : 8 - day
+  const next = new Date(today)
+  next.setDate(today.getDate() + daysUntil)
+  return next.toISOString().split('T')[0]
+}
 
 export default async function ProductPage({
   params,
@@ -13,6 +24,8 @@ export default async function ProductPage({
   const { slug } = await params
 
   let product = null
+  let remaining: number | undefined = undefined
+
   try {
     const supabase = await createClient()
     const { data } = await supabase
@@ -22,6 +35,20 @@ export default async function ProductPage({
       .eq('available', true)
       .single()
     product = data
+
+    if (product && product.weekly_quantity > 0) {
+      const admin = createAdminClient()
+      const nextMonday = getNextMonday()
+      const { data: items } = await admin
+        .from('order_items')
+        .select('quantity, orders!inner(pickup_week, status)')
+        .eq('product_id', product.id)
+        .eq('orders.pickup_week', nextMonday)
+        .in('orders.status', ['paid', 'ready', 'fulfilled'])
+
+      const ordered = (items ?? []).reduce((sum: number, i: { quantity: number }) => sum + i.quantity, 0)
+      remaining = Math.max(0, product.weekly_quantity - ordered)
+    }
   } catch {
     product = null
   }
@@ -70,6 +97,22 @@ export default async function ProductPage({
           <p className="font-display text-3xl font-bold text-gold">
             ${Number(product.price).toFixed(2)}
           </p>
+
+          {remaining !== undefined && (
+            <p className={`font-body text-sm font-medium ${
+              remaining === 0
+                ? 'text-red-500'
+                : remaining <= 5
+                ? 'text-amber-600'
+                : 'text-green-600'
+            }`}>
+              {remaining === 0
+                ? 'Sold out this week'
+                : remaining <= 5
+                ? `Only ${remaining} left this week!`
+                : `${remaining} left this week`}
+            </p>
+          )}
 
           {product.description && (
             <p className="font-body text-gray-700 leading-relaxed">
