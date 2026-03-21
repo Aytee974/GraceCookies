@@ -40,6 +40,13 @@ export function Footer() {
           </a>
         </div>
 
+        <a
+          href="/our-story"
+          className="font-body text-sm font-medium text-[#7c3aed] hover:text-[#6d28d9] transition-colors"
+        >
+          Our Story
+        </a>
+
         <p className="font-body text-sm text-violet">
           &copy; {new Date().getFullYear()} GF Gracey&apos;s Cookies &middot; Made with love
         </p>
