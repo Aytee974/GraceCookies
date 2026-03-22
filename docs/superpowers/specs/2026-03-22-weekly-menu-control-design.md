@@ -61,7 +61,7 @@ No schema changes. `products.available` continues to act as a global "not discon
 | File | Responsibility |
 |---|---|
 | `src/app/admin/menu/page.tsx` | Server component — fetches all `available` products and this week's `weekly_menu` rows, renders the table |
-| `src/app/admin/MenuToggleRow.tsx` | Client component — one row per product: toggle on/off and quantity input |
+| `src/app/admin/menu/MenuToggleRow.tsx` | Client component — one row per product: toggle on/off and quantity input (co-located with its page, matching the pattern of `RangeSelector.tsx`, `PrintButton.tsx`, etc.) |
 | `src/app/actions/menu.ts` | Server actions — `toggleMenuEntry` and `updateMenuQuantity` |
 | `supabase/migrations/YYYYMMDDHHMMSS_create_weekly_menu.sql` | DB migration |
 
@@ -69,7 +69,7 @@ No schema changes. `products.available` continues to act as a global "not discon
 
 | File | Change |
 |---|---|
-| `src/app/admin/AdminNav.tsx` | Add "Menu" nav link between "Orders" and "Products" |
+| `src/app/admin/AdminNav.tsx` | Add "Menu" nav link between "Orders" and "Ingredients" (current order: Orders → Ingredients → Products → Recipes → Stats; new order: Orders → **Menu** → Ingredients → Products → Recipes → Stats) |
 | `src/app/shop/page.tsx` | Filter products by `weekly_menu` for the upcoming week; use `quantity_limit` for sold-out tracking |
 
 ---
@@ -113,7 +113,15 @@ toggleMenuEntry(week: string, productId: string, on: boolean): Promise<{ error?:
 updateMenuQuantity(week: string, productId: string, limit: number | null): Promise<{ error?: string }>
 ```
 
-Both use `createAdminClient()` and call `revalidatePath('/admin/menu')`.
+Both use `createAdminClient()`. Both call `revalidatePath('/admin/menu')` and `revalidatePath('/shop')` so shop cache reflects menu changes immediately.
+
+`week` is always a `YYYY-MM-DD` string (the Monday of the pickup week).
+
+---
+
+## Admin Menu Default Week
+
+The menu page defaults to **next Monday** (the upcoming pickup week), not the current Monday. This is intentional — you configure the menu in advance. The Orders page defaults to the current Monday because that is the week currently being fulfilled. These are different workflows.
 
 ---
 
@@ -122,10 +130,11 @@ Both use `createAdminClient()` and call `revalidatePath('/admin/menu')`.
 **Before:** fetches `products` where `available = true`, uses `products.weekly_quantity` for sold-out tracking.
 
 **After:**
-1. Fetch `weekly_menu` rows for the upcoming week
-2. Fetch only those products (with `available = true` guard)
-3. For sold-out tracking, use `weekly_menu.quantity_limit` instead of `products.weekly_quantity`
-4. Products with `available = false` are excluded even if a `weekly_menu` row exists
+1. Compute the upcoming Monday using UTC-safe arithmetic (fix the existing local-time bug: use `getUTCDay()` / `setUTCDate()` to match the rest of the codebase)
+2. Fetch `weekly_menu` rows for that week
+3. Fetch those products by ID, filtered to `available = true`
+4. For sold-out tracking, use `weekly_menu.quantity_limit` instead of `products.weekly_quantity`
+5. Products with `available = false` are excluded even if a `weekly_menu` row exists
 
 If there are no `weekly_menu` rows for the upcoming week, the shop shows an empty state (no products available).
 
