@@ -218,6 +218,38 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {/* Pickup location */}
+          <div className="bg-white border border-blush rounded-2xl p-6 shadow-sm">
+            <h2 className="font-display text-xl font-semibold text-violet mb-4">
+              Pickup Location
+            </h2>
+            <div className="flex flex-col gap-3">
+              <div>
+                <p className="font-body text-sm font-semibold text-gray-800">Birch Coffee</p>
+                <p className="font-body text-sm text-gray-500">750 Columbus Ave, New York, NY 10025</p>
+              </div>
+              <iframe
+                src="https://www.google.com/maps?q=750+Columbus+Ave,+New+York,+NY+10025&output=embed"
+                className="w-full rounded-xl border border-blush"
+                height="220"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Pickup location map"
+              />
+              <div>
+                <p className="font-body text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Nearest Subway</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 font-body text-xs font-medium bg-lavender text-violet rounded-full px-3 py-1">
+                    🚇 96th St — 1 · 2 · 3 (~2 blocks)
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 font-body text-xs font-medium bg-lavender text-violet rounded-full px-3 py-1">
+                    🚇 96th St — B · C (~2 blocks)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Pickup week */}
           <div className="bg-white border border-blush rounded-2xl p-6 shadow-sm">
             <h2 className="font-display text-xl font-semibold text-violet mb-4">
