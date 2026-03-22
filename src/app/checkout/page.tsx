@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { placeOrder } from '@/app/actions/checkout'
 import type { CartItem } from '@/lib/types'
+import { useAuth } from '@/lib/auth-context'
 
 function getNextMondays(count: number): Date[] {
   const mondays: Date[] = []
@@ -51,6 +52,19 @@ export default function CheckoutPage() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const { user, openAuthModal } = useAuth()
+  const [bannerDismissed, setBannerDismissed] = useState(false)
+
+  // Pre-fill from account when user logs in
+  useEffect(() => {
+    if (user) {
+      const meta = user.user_metadata ?? {}
+      if (meta.first_name) setFirstName(meta.first_name)
+      if (meta.last_name) setLastName(meta.last_name)
+      if (user.email) setEmail(user.email)
+    }
+  }, [user])
 
   useEffect(() => {
     setMounted(true)
@@ -121,6 +135,43 @@ export default function CheckoutPage() {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-start">
         {/* Form */}
         <form onSubmit={handleSubmit} className="md:col-span-3 flex flex-col gap-6">
+          {/* Auth banner — logged out */}
+          {!user && !bannerDismissed && (
+            <div className="flex items-center justify-between gap-3 bg-[#f3e8ff] border border-[#e9d5ff] rounded-2xl px-4 py-3 mb-2">
+              <div>
+                <p className="font-body text-sm font-semibold text-violet">⚡ Faster checkout with an account</p>
+                <p className="font-body text-xs text-gray-500 mt-0.5">We&apos;ll pre-fill your details and save your order history.</p>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={openAuthModal}
+                  className="text-sm font-semibold text-white bg-violet hover:bg-violet-dark rounded-lg px-3 py-1.5 transition-colors"
+                >
+                  Sign in
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBannerDismissed(true)}
+                  className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+                  aria-label="Dismiss"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Auth indicator — logged in */}
+          {user && (
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-2xl px-4 py-2.5 mb-2">
+              <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+              <p className="font-body text-xs text-green-800 font-medium">
+                Signed in as <strong>{user.email}</strong> — your details are pre-filled.
+              </p>
+            </div>
+          )}
+
           <div className="bg-white border border-blush rounded-2xl p-6 shadow-sm">
             <h2 className="font-display text-xl font-semibold text-violet mb-4">
               Your Details
@@ -132,6 +183,7 @@ export default function CheckoutPage() {
                 onChange={(e) => setFirstName(e.target.value)}
                 required
                 placeholder="Grace"
+                className={user ? 'bg-[#f3e8ff] border-[#c4b5fd]' : ''}
               />
               <Input
                 label="Last Name"
@@ -139,6 +191,7 @@ export default function CheckoutPage() {
                 onChange={(e) => setLastName(e.target.value)}
                 required
                 placeholder="Smith"
+                className={user ? 'bg-[#f3e8ff] border-[#c4b5fd]' : ''}
               />
             </div>
             <div className="mt-4 flex flex-col gap-4">
@@ -149,6 +202,7 @@ export default function CheckoutPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="you@example.com"
+                className={user ? 'bg-[#f3e8ff] border-[#c4b5fd]' : ''}
               />
               <Input
                 label="Phone"
