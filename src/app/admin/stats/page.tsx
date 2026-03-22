@@ -6,17 +6,21 @@ import {
   aggregateByWeek,
   computeProductSales,
   type WeekAggregate,
-  type ProductSale,
 } from '@/lib/stats'
 
 interface Props {
   searchParams: Promise<{ weeks?: string }>
 }
 
+const VALID_RANGES = [4, 8, 12] as const
+type RangeWeeks = typeof VALID_RANGES[number]
+
 export default async function StatsPage({ searchParams }: Props) {
   const params = await searchParams
   const weeks = Number(params.weeks ?? '8')
-  const rangeWeeks = [4, 8, 12].includes(weeks) ? weeks : 8
+  const rangeWeeks: RangeWeeks = (VALID_RANGES as readonly number[]).includes(weeks)
+    ? (weeks as RangeWeeks)
+    : 8
 
   // Fetch double the weeks so we can compare current vs previous period
   const allWeeks = getPastMondays(rangeWeeks * 2)
@@ -25,30 +29,60 @@ export default async function StatsPage({ searchParams }: Props) {
   const admin = createAdminClient()
   const VALID_STATUSES = ['paid', 'ready', 'fulfilled']
 
-  // Fetch orders for all weeks (both periods)
-  const { data: ordersRaw } = await admin
-    .from('orders')
-    .select('id, pickup_week, total, status')
-    .in('pickup_week', allWeeks)
-    .in('status', VALID_STATUSES)
+  let fetchError: string | null = null
+  let ordersRaw: { id: string; pickup_week: string; total: number; status: string }[] | null = null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let itemsRaw: any[] | null = null
+
+  try {
+    // Fetch orders for all weeks (both periods)
+    const { data: ordersData, error: ordersError } = await admin
+      .from('orders')
+      .select('id, pickup_week, total, status')
+      .in('pickup_week', allWeeks)
+      .in('status', VALID_STATUSES)
+
+    if (ordersError) {
+      fetchError = ordersError.message
+    } else {
+      ordersRaw = ordersData
+
+      // Fetch order_items for current period only.
+      // Two-step: get current-period order IDs first, then filter order_items.
+      const currOrderIds = (ordersRaw ?? [])
+        .filter((o) => currWeeks.includes(o.pickup_week))
+        .map((o) => o.id)
+
+      const { data: itemsData, error: itemsError } = currOrderIds.length > 0
+        ? await admin
+            .from('order_items')
+            .select('quantity, product_id, products(name)')
+            .in('order_id', currOrderIds)
+        : { data: [], error: null }
+
+      if (itemsError) {
+        fetchError = itemsError.message
+      } else {
+        itemsRaw = itemsData
+      }
+    }
+  } catch {
+    fetchError = 'Could not connect to database.'
+  }
+
+  if (fetchError) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+        <p className="font-body text-sm text-red-600">{fetchError}</p>
+      </div>
+    )
+  }
 
   const orders = ordersRaw ?? []
 
-  // Fetch order_items for current period only.
-  // Two-step: get current-period order IDs first, then filter order_items.
-  const currOrderIds = orders
-    .filter((o) => currWeeks.includes(o.pickup_week))
-    .map((o) => o.id)
-
-  const { data: itemsRaw } = currOrderIds.length > 0
-    ? await admin
-        .from('order_items')
-        .select('quantity, product_id, products(name)')
-        .in('order_id', currOrderIds)
-    : { data: [] }
-
   // Normalize items shape
-  const items = (itemsRaw ?? []).map((row: any) => ({
+  type RawOrderItem = { product_id: string; quantity: number; products: { name: string } | null }
+  const items = ((itemsRaw ?? []) as RawOrderItem[]).map((row) => ({
     product_id: row.product_id,
     product_name: row.products?.name ?? 'Unknown',
     quantity: row.quantity,
@@ -60,7 +94,6 @@ export default async function StatsPage({ searchParams }: Props) {
 
   // Aggregates
   const currByWeek = aggregateByWeek(currOrders)
-  const prevByWeek = aggregateByWeek(prevOrders)
   const topProducts = computeProductSales(items).slice(0, 5)
 
   // KPI: current period
@@ -148,7 +181,7 @@ export default async function StatsPage({ searchParams }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="font-display text-3xl font-bold text-violet">Statistics</h1>
-        <RangeSelector current={rangeWeeks as 4 | 8 | 12} />
+        <RangeSelector current={rangeWeeks} />
       </div>
 
       {/* KPI cards */}
