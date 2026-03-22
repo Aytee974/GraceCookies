@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { RangeSelector } from './RangeSelector'
 import {
@@ -181,7 +182,9 @@ export default async function StatsPage({ searchParams }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h1 className="font-display text-3xl font-bold text-violet">Statistics</h1>
-        <RangeSelector current={rangeWeeks} />
+        <Suspense fallback={<div className="h-9 w-48 bg-gray-100 rounded-lg animate-pulse" />}>
+          <RangeSelector current={rangeWeeks} />
+        </Suspense>
       </div>
 
       {/* KPI cards */}

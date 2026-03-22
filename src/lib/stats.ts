@@ -13,29 +13,29 @@ export type ProductSale = {
   totalQty: number
 }
 
-function toLocalDateString(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
+function toUTCDateString(d: Date): string {
+  const y = d.getUTCFullYear()
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(d.getUTCDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
 
 /** Returns the `count` most recent Mondays (incl. current week) as YYYY-MM-DD, ascending. */
 export function getPastMondays(count: number): string[] {
   const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  today.setUTCHours(0, 0, 0, 0)
 
   // Day 0=Sun,1=Mon,...,6=Sat.  We want the Monday of the current week.
-  const dayOfWeek = today.getDay()
+  const dayOfWeek = today.getUTCDay()
   const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1
   const thisMonday = new Date(today)
-  thisMonday.setDate(today.getDate() - daysToSubtract)
+  thisMonday.setUTCDate(today.getUTCDate() - daysToSubtract)
 
   const result: string[] = []
   for (let i = count - 1; i >= 0; i--) {
     const d = new Date(thisMonday)
-    d.setDate(thisMonday.getDate() - i * 7)
-    result.push(toLocalDateString(d))
+    d.setUTCDate(thisMonday.getUTCDate() - i * 7)
+    result.push(toUTCDateString(d))
   }
   return result
 }
