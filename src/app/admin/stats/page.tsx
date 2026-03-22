@@ -15,6 +15,8 @@ interface Props {
 const VALID_RANGES = [4, 8, 12] as const
 type RangeWeeks = typeof VALID_RANGES[number]
 
+type RawOrderItem = { product_id: string; quantity: number; products: { name: string }[] | null }
+
 export default async function StatsPage({ searchParams }: Props) {
   const params = await searchParams
   const weeks = Number(params.weeks ?? '8')
@@ -31,8 +33,7 @@ export default async function StatsPage({ searchParams }: Props) {
 
   let fetchError: string | null = null
   let ordersRaw: { id: string; pickup_week: string; total: number; status: string }[] | null = null
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let itemsRaw: any[] | null = null
+  let itemsRaw: RawOrderItem[] | null = null
 
   try {
     // Fetch orders for all weeks (both periods)
@@ -81,10 +82,9 @@ export default async function StatsPage({ searchParams }: Props) {
   const orders = ordersRaw ?? []
 
   // Normalize items shape
-  type RawOrderItem = { product_id: string; quantity: number; products: { name: string } | null }
-  const items = ((itemsRaw ?? []) as RawOrderItem[]).map((row) => ({
+  const items = (itemsRaw ?? []).map((row) => ({
     product_id: row.product_id,
-    product_name: row.products?.name ?? 'Unknown',
+    product_name: row.products?.[0]?.name ?? 'Unknown',
     quantity: row.quantity,
   }))
 
