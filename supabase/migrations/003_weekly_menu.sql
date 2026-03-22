@@ -5,3 +5,6 @@ CREATE TABLE weekly_menu (
   quantity_limit INTEGER NULL,
   UNIQUE (pickup_week, product_id)
 );
+
+ALTER TABLE weekly_menu ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read weekly_menu" ON weekly_menu FOR SELECT USING (true);
