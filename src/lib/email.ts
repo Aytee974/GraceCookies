@@ -88,6 +88,42 @@ Gracey`
   }
 }
 
-export async function sendOrderReady(_orderId: string): Promise<void> {
-  // TODO: implement in Task 4
+export async function sendOrderReady(orderId: string): Promise<void> {
+  try {
+    const admin = createAdminClient()
+    const { data: order, error } = await admin
+      .from('orders')
+      .select('id, customer_name, customer_email, pickup_week, access_token')
+      .eq('id', orderId)
+      .single()
+
+    if (error || !order) {
+      console.error('sendOrderReady: failed to fetch order', error)
+      return
+    }
+
+    const firstName = getFirstName(order.customer_name)
+    const pickupLabel = formatPickupWeekLabel(order.pickup_week)
+
+    const body = `Hi ${firstName},
+
+Good news — your order is ready and waiting for you at:
+
+  Birch Coffee
+  750 Columbus Ave, New York, NY 10025
+  Week of ${pickupLabel}
+
+View your order: ${process.env.NEXT_PUBLIC_BASE_URL}/order/${order.id}?token=${order.access_token}
+
+Gracey`
+
+    await resend.emails.send({
+      from: process.env.EMAIL_FROM!,
+      to: order.customer_email,
+      subject: 'Your cookies are ready for pickup!',
+      text: body,
+    })
+  } catch (err) {
+    console.error('sendOrderReady: unexpected error', err)
+  }
 }
