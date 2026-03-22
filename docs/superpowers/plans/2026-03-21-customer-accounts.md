@@ -14,7 +14,7 @@
 
 | File | Action | Responsibility |
 |---|---|---|
-| `src/middleware.ts` | Create | Refresh Supabase session cookie on every request |
+| `src/proxy.ts` | Create | Refresh Supabase session cookie on every request |
 | `src/lib/auth-context.tsx` | Create | AuthProvider, useAuth hook, modal open/close state |
 | `src/components/AccountModal.tsx` | Create | Sign-in / Create-account modal UI |
 | `src/app/auth/callback/route.ts` | Create | Exchange magic-link code for session cookie |
@@ -30,7 +30,7 @@
 ## Task 1: Middleware — session refresh
 
 **Files:**
-- Create: `src/middleware.ts`
+- Create: `src/proxy.ts`
 
 ### Background
 
@@ -50,7 +50,7 @@ NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
 This is already used by `src/app/actions/checkout.ts` (line 130) so it may already exist. If it does, skip this step.
 
-- [ ] **Step 2: Create `src/middleware.ts`**
+- [ ] **Step 2: Create `src/proxy.ts`**
 
 ```ts
 import { createServerClient } from '@supabase/ssr'
@@ -104,7 +104,7 @@ Expected: no errors.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/middleware.ts .env.local
+git add src/proxy.ts .env.local
 git commit -m "feat: add Supabase SSR session-refresh middleware"
 ```
 
