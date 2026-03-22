@@ -76,10 +76,13 @@ export default function CheckoutPage() {
     }
   }, [])
 
+  const NYC_TAX_RATE = 0.08875
   const subtotal = cart.reduce(
     (sum, item) => sum + Number(item.product.price) * item.quantity,
     0
   )
+  const tax = Math.round(subtotal * NYC_TAX_RATE * 100) / 100
+  const total = Math.round((subtotal + tax) * 100) / 100
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -215,6 +218,38 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          {/* Pickup location */}
+          <div className="bg-white border border-blush rounded-2xl p-6 shadow-sm">
+            <h2 className="font-display text-xl font-semibold text-violet mb-4">
+              Pickup Location
+            </h2>
+            <div className="flex flex-col gap-3">
+              <div>
+                <p className="font-body text-sm font-semibold text-gray-800">Birch Coffee</p>
+                <p className="font-body text-sm text-gray-500">750 Columbus Ave, New York, NY 10025</p>
+              </div>
+              <iframe
+                src="https://www.google.com/maps?q=750+Columbus+Ave,+New+York,+NY+10025&output=embed"
+                className="w-full rounded-xl border border-blush"
+                height="220"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Pickup location map"
+              />
+              <div>
+                <p className="font-body text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Nearest Subway</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1.5 font-body text-xs font-medium bg-lavender text-violet rounded-full px-3 py-1">
+                    🚇 96th St — 1 · 2 · 3 (~2 blocks)
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 font-body text-xs font-medium bg-lavender text-violet rounded-full px-3 py-1">
+                    🚇 96th St — B · C (~2 blocks)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Pickup week */}
           <div className="bg-white border border-blush rounded-2xl p-6 shadow-sm">
             <h2 className="font-display text-xl font-semibold text-violet mb-4">
@@ -286,11 +321,21 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
-            <div className="border-t border-blush pt-3 flex justify-between">
-              <span className="font-body font-medium text-gray-700">Total</span>
-              <span className="font-display text-xl font-bold text-gold">
-                ${subtotal.toFixed(2)}
-              </span>
+            <div className="border-t border-blush pt-3 flex flex-col gap-1.5">
+              <div className="flex justify-between text-sm">
+                <span className="font-body text-gray-500">Subtotal</span>
+                <span className="font-body text-gray-700">${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="font-body text-gray-500">NYC Tax (8.875%)</span>
+                <span className="font-body text-gray-700">${tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between mt-1 pt-2 border-t border-blush">
+                <span className="font-body font-semibold text-gray-700">Total</span>
+                <span className="font-display text-xl font-bold text-gold">
+                  ${total.toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
         </div>

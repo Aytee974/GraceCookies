@@ -79,7 +79,10 @@ export async function placeOrder(input: CheckoutInput): Promise<{ url: string } 
       }
     })
 
-    const total = lineItems.reduce((s, li) => s + li.unitPrice * li.quantity, 0)
+    const NYC_TAX_RATE = 0.08875 // 4% NY state + 4.5% NYC + 0.375% MCTD
+    const subtotal = lineItems.reduce((s, li) => s + li.unitPrice * li.quantity, 0)
+    const tax = Math.round(subtotal * NYC_TAX_RATE * 100) / 100
+    const total = Math.round((subtotal + tax) * 100) / 100
 
     // Create order with admin client
     const admin = createAdminClient()
@@ -131,14 +134,24 @@ export async function placeOrder(input: CheckoutInput): Promise<{ url: string } 
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
-      line_items: lineItems.map((li) => ({
-        price_data: {
-          currency: 'cad',
-          product_data: { name: li.name },
-          unit_amount: Math.round(li.unitPrice * 100),
+      line_items: [
+        ...lineItems.map((li) => ({
+          price_data: {
+            currency: 'usd',
+            product_data: { name: li.name },
+            unit_amount: Math.round(li.unitPrice * 100),
+          },
+          quantity: li.quantity,
+        })),
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: { name: 'NYC Sales Tax (8.875%)' },
+            unit_amount: Math.round(tax * 100),
+          },
+          quantity: 1,
         },
-        quantity: li.quantity,
-      })),
+      ],
       success_url: `${baseUrl}/order/${orderId}?token=${accessToken}`,
       cancel_url: `${baseUrl}/cart`,
       metadata: { orderId, accessToken },

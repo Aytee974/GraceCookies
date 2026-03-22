@@ -8,6 +8,7 @@ const navLinks = [
   { label: 'Ingredients', href: '/admin/ingredients' },
   { label: 'Products', href: '/admin/products' },
   { label: 'Recipes', href: '/admin/recipes' },
+  { label: 'Stats', href: '/admin/stats' },
 ]
 
 export function AdminNav() {
