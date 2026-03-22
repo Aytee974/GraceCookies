@@ -13,6 +13,13 @@ export type ProductSale = {
   totalQty: number
 }
 
+function toLocalDateString(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 /** Returns the `count` most recent Mondays (incl. current week) as YYYY-MM-DD, ascending. */
 export function getPastMondays(count: number): string[] {
   const today = new Date()
@@ -28,7 +35,7 @@ export function getPastMondays(count: number): string[] {
   for (let i = count - 1; i >= 0; i--) {
     const d = new Date(thisMonday)
     d.setDate(thisMonday.getDate() - i * 7)
-    result.push(d.toISOString().split('T')[0])
+    result.push(toLocalDateString(d))
   }
   return result
 }

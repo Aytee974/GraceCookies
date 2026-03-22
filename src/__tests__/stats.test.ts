@@ -65,8 +65,8 @@ describe('aggregateByWeek', () => {
 
   it('sums revenue per week', () => {
     const result = aggregateByWeek(orders)
-    expect(result['2026-03-02'].revenue).toBeCloseTo(80)
-    expect(result['2026-03-09'].revenue).toBeCloseTo(80)
+    expect(result['2026-03-02'].revenue).toBe(80)
+    expect(result['2026-03-09'].revenue).toBe(80)
   })
 })
 
