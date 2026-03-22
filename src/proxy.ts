@@ -5,21 +5,58 @@ import type { NextRequest } from 'next/server'
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Only protect /admin/* routes
-  if (!pathname.startsWith('/admin')) {
-    return NextResponse.next()
+  // ── Admin routes ──────────────────────────────────────────────────────────
+  if (pathname.startsWith('/admin')) {
+    // Allow login page through
+    if (pathname === '/admin/login') {
+      return NextResponse.next()
+    }
+
+    let response = NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    })
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value)
+            )
+            response = NextResponse.next({
+              request,
+            })
+            cookiesToSet.forEach(({ name, value, options }) =>
+              response.cookies.set(name, value, options)
+            )
+          },
+        },
+      }
+    )
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      const loginUrl = request.nextUrl.clone()
+      loginUrl.pathname = '/admin/login'
+      return NextResponse.redirect(loginUrl)
+    }
+
+    return response
   }
 
-  // Allow login page through
-  if (pathname === '/admin/login') {
-    return NextResponse.next()
-  }
-
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+  // ── Customer-facing routes: refresh Supabase session cookie ───────────────
+  // Uses getUser() (server-verified) rather than getSession() (unverified).
+  let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -33,30 +70,23 @@ export async function proxy(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
-          response = NextResponse.next({
-            request,
-          })
+          supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options)
           )
         },
       },
     }
   )
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  // Refresh session — do NOT use getSession(), it is unverified
+  await supabase.auth.getUser()
 
-  if (!session) {
-    const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/admin/login'
-    return NextResponse.redirect(loginUrl)
-  }
-
-  return response
+  return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }

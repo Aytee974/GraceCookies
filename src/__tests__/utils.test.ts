@@ -105,3 +105,33 @@ describe('calcRemaining', () => {
     expect(calcRemaining(12, 0)).toBe(12)
   })
 })
+
+// --- getInitials ---
+function getInitials(firstName?: string, lastName?: string, email?: string): string {
+  if (firstName && lastName) return `${firstName[0]}${lastName[0]}`.toUpperCase()
+  if (firstName) return firstName[0].toUpperCase()
+  if (email) return email[0].toUpperCase()
+  return '?'
+}
+
+describe('getInitials', () => {
+  it('returns first+last initials when both names present', () => {
+    expect(getInitials('Grace', 'Smith')).toBe('GS')
+  })
+
+  it('returns single initial when only first name', () => {
+    expect(getInitials('Grace', undefined)).toBe('G')
+  })
+
+  it('falls back to email initial when no name', () => {
+    expect(getInitials(undefined, undefined, 'grace@example.com')).toBe('G')
+  })
+
+  it('returns ? when nothing provided', () => {
+    expect(getInitials()).toBe('?')
+  })
+
+  it('uppercases the result', () => {
+    expect(getInitials('grace', 'smith')).toBe('GS')
+  })
+})
