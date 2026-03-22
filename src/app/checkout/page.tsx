@@ -76,10 +76,13 @@ export default function CheckoutPage() {
     }
   }, [])
 
+  const NYC_TAX_RATE = 0.08875
   const subtotal = cart.reduce(
     (sum, item) => sum + Number(item.product.price) * item.quantity,
     0
   )
+  const tax = Math.round(subtotal * NYC_TAX_RATE * 100) / 100
+  const total = Math.round((subtotal + tax) * 100) / 100
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -286,11 +289,21 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
-            <div className="border-t border-blush pt-3 flex justify-between">
-              <span className="font-body font-medium text-gray-700">Total</span>
-              <span className="font-display text-xl font-bold text-gold">
-                ${subtotal.toFixed(2)}
-              </span>
+            <div className="border-t border-blush pt-3 flex flex-col gap-1.5">
+              <div className="flex justify-between text-sm">
+                <span className="font-body text-gray-500">Subtotal</span>
+                <span className="font-body text-gray-700">${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="font-body text-gray-500">NYC Tax (8.875%)</span>
+                <span className="font-body text-gray-700">${tax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between mt-1 pt-2 border-t border-blush">
+                <span className="font-body font-semibold text-gray-700">Total</span>
+                <span className="font-display text-xl font-bold text-gold">
+                  ${total.toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
