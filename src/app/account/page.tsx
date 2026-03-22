@@ -48,7 +48,7 @@ export default async function AccountPage() {
   const initials = getInitials(firstName, lastName, user.email)
   const displayName = [firstName, lastName].filter(Boolean).join(' ') || user.email
 
-  const orders = await getOrdersByEmail(user.email!)
+  const orders = user.email ? await getOrdersByEmail(user.email) : []
 
   return (
     <div className="flex flex-col pb-16">

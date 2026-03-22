@@ -20,7 +20,9 @@ export async function GET(request: NextRequest) {
               cookiesToSet.forEach(({ name, value, options }) =>
                 cookieStore.set(name, value, options)
               )
-            } catch {}
+            } catch (e) {
+              console.error('[auth/callback] Failed to set session cookie:', e)
+            }
           },
         },
       }

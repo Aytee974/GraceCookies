@@ -9,8 +9,8 @@ export function SignOutButton() {
   async function handleSignOut() {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.refresh()  // invalidate server-side session cache FIRST
-    router.push('/')
+    // Full reload ensures server picks up the cleared session cookie
+    window.location.href = '/'
   }
 
   return (

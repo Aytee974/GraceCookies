@@ -29,9 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Initialise from current session
     supabase.auth.getUser().then(({ data }) => setUser(data.user ?? null))
 
-    // Keep in sync with auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    // Keep in sync with auth state changes — auto-close modal on sign-in
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null)
+      if (event === 'SIGNED_IN') setModalOpen(false)
     })
 
     return () => subscription.unsubscribe()
