@@ -39,13 +39,20 @@ export function MenuToggleRow({ product, entry, week }: MenuToggleRowProps) {
     if (!isOn) return
     setRowError(null)
     const trimmed = quantityValue.trim()
-    const limit = trimmed === '' ? null : parseInt(trimmed, 10)
-    if (trimmed !== '' && (isNaN(limit!) || limit! < 0)) {
-      setRowError('Quantity must be a positive number or blank for unlimited.')
+    if (trimmed === '') {
+      startTransition(async () => {
+        const result = await updateMenuQuantity(week, product.id, null)
+        if (result.error) setRowError(result.error)
+      })
+      return
+    }
+    const parsed = parseInt(trimmed, 10)
+    if (isNaN(parsed) || parsed < 0 || !Number.isInteger(Number(trimmed))) {
+      setRowError('Quantity must be 0 or greater, or blank for unlimited.')
       return
     }
     startTransition(async () => {
-      const result = await updateMenuQuantity(week, product.id, limit)
+      const result = await updateMenuQuantity(week, product.id, parsed)
       if (result.error) setRowError(result.error)
     })
   }
@@ -91,6 +98,7 @@ export function MenuToggleRow({ product, entry, week }: MenuToggleRowProps) {
               onChange={(e) => setQuantityValue(e.target.value)}
               onBlur={handleQuantityBlur}
               placeholder="∞"
+              step="1"
               disabled={isPending}
               className="w-20 rounded-lg border border-blush-dark px-2 py-1 text-sm text-center focus:outline-none focus:border-blush focus:ring-2 focus:ring-blush/50"
             />
