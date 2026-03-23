@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { WeekNav } from '@/app/admin/WeekNav'
 import { MenuToggleRow } from './MenuToggleRow'
-import { getNextMondayUTC } from '@/app/actions/menu'
+import { getNextMondayUTC } from '@/lib/menu-utils'
 import type { Product } from '@/lib/types'
 
 interface PageProps {

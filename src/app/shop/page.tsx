@@ -1,6 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { CategoryFilter } from '@/components/CategoryFilter'
-import { getNextMondayUTC } from '@/app/actions/menu'
+import { getNextMondayUTC } from '@/lib/menu-utils'
 import type { Product } from '@/lib/types'
 
 type MenuEntry = {
