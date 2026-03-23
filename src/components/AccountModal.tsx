@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 type Tab = 'signin' | 'signup'
@@ -193,7 +194,18 @@ export function AccountModal({ isOpen, onClose }: AccountModalProps) {
 
               {signInMethod === 'password' && (
                 <div className="flex flex-col gap-1">
-                  <label className="text-xs font-medium text-gray-700">Password</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-medium text-gray-700">Password</label>
+                    {tab === 'signin' && (
+                      <Link
+                        href="/account/forgot-password"
+                        onClick={onClose}
+                        className="text-xs text-violet hover:underline"
+                      >
+                        Forgot password?
+                      </Link>
+                    )}
+                  </div>
                   <input
                     type="password"
                     value={password}
