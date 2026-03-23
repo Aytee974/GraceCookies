@@ -26,8 +26,9 @@ export function MenuToggleRow({ product, entry, week }: MenuToggleRowProps) {
     setRowError(null)
     startTransition(async () => {
       const result = await toggleMenuEntry(week, product.id, !isOn)
-      if (result.error) setRowError(result.error)
-      if (!isOn) {
+      if (result.error) {
+        setRowError(result.error)
+      } else if (!isOn) {
         // Pre-fill quantity from product default when turning on
         setQuantityValue(product.weekly_quantity > 0 ? String(product.weekly_quantity) : '')
       }
@@ -35,6 +36,7 @@ export function MenuToggleRow({ product, entry, week }: MenuToggleRowProps) {
   }
 
   function handleQuantityBlur() {
+    if (!isOn) return
     setRowError(null)
     const trimmed = quantityValue.trim()
     const limit = trimmed === '' ? null : parseInt(trimmed, 10)
@@ -65,6 +67,7 @@ export function MenuToggleRow({ product, entry, week }: MenuToggleRowProps) {
         </td>
         <td className="px-4 py-3 text-center">
           <button
+            type="button"
             onClick={handleToggle}
             disabled={isPending}
             className={`w-10 h-5 rounded-full transition-colors duration-200 focus:outline-none ${
