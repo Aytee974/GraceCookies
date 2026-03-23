@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendOrderConfirmation } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
@@ -45,6 +46,8 @@ export async function POST(req: NextRequest) {
         console.error('Failed to update order status:', error)
         return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
       }
+
+      await sendOrderConfirmation(orderId)
     }
   }
 
