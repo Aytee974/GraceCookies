@@ -66,12 +66,16 @@ export async function sendAllConfirmationEmails(
 ): Promise<{ sent: number; failed: number }> {
   const admin = createAdminClient()
 
-  const { data: orders } = await admin
+  const { data: orders, error: fetchError } = await admin
     .from('orders')
     .select('id')
     .eq('status', 'ready')
     .eq('pickup_week', week)
     .is('confirmation_sent_at', null)
+
+  if (fetchError) {
+    throw new Error(`sendAllConfirmationEmails: fetch failed: ${fetchError.message}`)
+  }
 
   if (!orders || orders.length === 0) {
     return { sent: 0, failed: 0 }

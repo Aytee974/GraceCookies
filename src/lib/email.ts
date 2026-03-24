@@ -11,7 +11,7 @@ export function getFirstName(customerName: string): string {
 
 export function formatPickupWeekLabel(pickupWeek: string): string {
   const [year, month, day] = pickupWeek.split('-').map(Number)
-  const date = new Date(year, month - 1, day)
+  const date = new Date(`${pickupWeek}T00:00:00Z`)
   return date.toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
