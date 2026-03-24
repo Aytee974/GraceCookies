@@ -50,3 +50,10 @@ export type CartItem = {
   product: Product
   quantity: number
 }
+
+export type OrderItemWithProduct = {
+  id: string
+  quantity: number
+  unit_price: number
+  products: { name: string }
+}

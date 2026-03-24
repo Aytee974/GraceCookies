@@ -1,9 +1,8 @@
 import { Suspense } from 'react'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Badge } from '@/components/ui/Badge'
 import { WeekNav } from './WeekNav'
-import { OrderActions } from './OrderActions'
-import type { Order, OrderItem } from '@/lib/types'
+import { OrdersTable } from './OrdersTable'
+import type { Order, OrderItemWithProduct } from '@/lib/types'
 
 function getCurrentMonday(): string {
   const today = new Date()
@@ -14,13 +13,7 @@ function getCurrentMonday(): string {
   return monday.toISOString().split('T')[0]
 }
 
-function statusBadgeVariant(status: Order['status']): 'ready' | 'pending' | 'fulfilled' {
-  if (status === 'paid') return 'pending'
-  if (status === 'ready') return 'ready'
-  return 'fulfilled'
-}
-
-type OrderWithItems = Order & { item_count: number }
+type OrderWithItems = Order & { order_items: OrderItemWithProduct[] }
 
 interface PageProps {
   searchParams: Promise<{ week?: string }>
@@ -38,7 +31,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
     const { data, error } = await admin
       .from('orders')
-      .select('*, order_items(id)')
+      .select('*, order_items(id, quantity, unit_price, products(name))')
       .eq('pickup_week', week)
       .in('status', ['paid', 'ready', 'fulfilled'])
       .order('created_at', { ascending: true })
@@ -46,10 +39,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     if (error) {
       fetchError = error.message
     } else {
-      orders = (data ?? []).map((o: Order & { order_items: { id: string }[] }) => ({
-        ...o,
-        item_count: o.order_items?.length ?? 0,
-      }))
+      orders = (data ?? []) as OrderWithItems[]
     }
   } catch {
     fetchError = 'Could not connect to database.'
@@ -91,47 +81,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
           <p className="text-gray-400 text-sm">No orders for this week.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Customer</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Email</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Phone</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-500">Items</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-500">Total</th>
-                <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
-                <th className="text-right px-4 py-3 font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-gray-900">{order.customer_name}</td>
-                  <td className="px-4 py-3 text-gray-600">{order.customer_email}</td>
-                  <td className="px-4 py-3 text-gray-600">{order.customer_phone}</td>
-                  <td className="px-4 py-3 text-right text-gray-700">{order.item_count}</td>
-                  <td className="px-4 py-3 text-right text-gray-700">${Number(order.total).toFixed(2)}</td>
-                  <td className="px-4 py-3">
-                    <Badge
-                      label={order.status}
-                      variant="status"
-                      status={statusBadgeVariant(order.status)}
-                    />
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {(order.status === 'paid' || order.status === 'ready') && (
-                      <OrderActions orderId={order.id} status={order.status} />
-                    )}
-                    {order.status === 'fulfilled' && (
-                      <span className="text-xs text-gray-400">Done</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <OrdersTable orders={orders} />
       )}
     </div>
   )
