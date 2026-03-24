@@ -34,9 +34,13 @@ export async function sendConfirmationEmail(
     .eq('id', orderId)
     .is('confirmation_sent_at', null)
     .select('id')
-    .single()
 
-  if (claimError || !data) {
+  if (claimError) {
+    throw new Error(`sendConfirmationEmail: claim failed: ${claimError.message}`)
+  }
+
+  if (!data || data.length === 0) {
+    // No row updated — already claimed/sent by another request
     return { success: false, error: 'already_sent' }
   }
 

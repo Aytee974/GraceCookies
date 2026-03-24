@@ -64,7 +64,7 @@ export default function ConfirmationTable({ orders, week, sentCount, unsentCount
           {batchResult && (
             <p className="text-xs text-gray-500 mt-0.5">
               {batchResult.sent} sent
-              {batchResult.failed > 0 && `, ${batchResult.failed} failed — retry individually`}
+              {batchResult.failed > 0 && `, ${batchResult.failed} failed — please retry failed orders individually`}
             </p>
           )}
         </div>
