@@ -11,7 +11,7 @@ export function getFirstName(customerName: string): string {
 
 export function formatPickupWeekLabel(pickupWeek: string): string {
   const [year, month, day] = pickupWeek.split('-').map(Number)
-  const date = new Date(year, month - 1, day)
+  const date = new Date(`${pickupWeek}T00:00:00Z`)
   return date.toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -89,23 +89,22 @@ Gracey`
 }
 
 export async function sendOrderReady(orderId: string): Promise<void> {
-  try {
-    const admin = createAdminClient()
-    const { data: order, error } = await admin
-      .from('orders')
-      .select('id, customer_name, customer_email, pickup_week, access_token')
-      .eq('id', orderId)
-      .single()
+  const admin = createAdminClient()
+  const { data: order, error } = await admin
+    .from('orders')
+    .select('id, customer_name, customer_email, pickup_week, access_token')
+    .eq('id', orderId)
+    .single()
 
-    if (error || !order) {
-      console.error('sendOrderReady: failed to fetch order', error)
-      return
-    }
+  if (error || !order) {
+    console.error('sendOrderReady: failed to fetch order', error)
+    throw new Error(`sendOrderReady: failed to fetch order ${orderId}`)
+  }
 
-    const firstName = getFirstName(order.customer_name)
-    const pickupLabel = formatPickupWeekLabel(order.pickup_week)
+  const firstName = getFirstName(order.customer_name)
+  const pickupLabel = formatPickupWeekLabel(order.pickup_week)
 
-    const body = `Hi ${firstName},
+  const body = `Hi ${firstName},
 
 Good news — your order is ready and waiting for you at:
 
@@ -117,13 +116,15 @@ View your order: ${process.env.NEXT_PUBLIC_BASE_URL}/order/${order.id}?token=${o
 
 Gracey`
 
-    await resend.emails.send({
-      from: process.env.EMAIL_FROM!,
-      to: order.customer_email,
-      subject: 'Your cookies are ready for pickup!',
-      text: body,
-    })
-  } catch (err) {
-    console.error('sendOrderReady: unexpected error', err)
+  const { error: sendError } = await resend.emails.send({
+    from: process.env.EMAIL_FROM!,
+    to: order.customer_email,
+    subject: 'Your cookies are ready for pickup!',
+    text: body,
+  })
+
+  if (sendError) {
+    console.error('sendOrderReady: resend error', sendError)
+    throw new Error(`sendOrderReady: failed to send email for order ${orderId}`)
   }
 }

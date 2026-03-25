@@ -36,6 +36,7 @@ export type Order = {
   stripe_payment_id: string | null
   access_token: string
   created_at: string
+  confirmation_sent_at: string | null  // ISO timestamp or null if not yet sent
 }
 
 export type OrderItem = {
